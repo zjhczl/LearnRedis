@@ -857,3 +857,84 @@ QUEUED
 127.0.0.1:6379> exec #在执行前，通过另外一个客户端改变m的值，队列执行失败
 (nil)
 ```
+
+### redis 配置文件
+
+```bash
+#常规
+bind 127.0.0.1 #绑定的ip
+protected-mode yes #为了安全一般开启
+port 6379 #端口号
+daemonize yes #守护进程 后台运行，需要手动调为yes
+pidfile /var/run/redis_6379.pid #指定pid文件
+loglevel notice #日志级别 包括：debug verbose notice warning
+logfile "" #日志的文件位置名
+databases 16 #默认数据库数量
+always-show-logo yes #是否显示logo
+
+#快照
+#持久化，在规定时间内，执行了多少次操作，则会持久化到文件（.rdb .aof）
+save 900 1 #如果900秒内至少有一个key进行了修改，我们就进行持久化操作
+save 300 10
+save 60 10000 #如果60秒内至少有10000个key进行了修改，我们就进行持久化操作
+stop-writes-on-bgsave-error yes #持久化错误之后是否继续进行工作
+rdbcompression yes #是否压缩rdb文件
+rdbchecksum yes #保存edb时是否检查rdb文件
+dbfilename dump.rdb
+rdb-del-sync-files no
+dir ./ #rdb文件保存的目录
+replica-serve-stale-data yes
+replica-read-only yes
+repl-diskless-sync no
+repl-diskless-sync-delay 5
+repl-diskless-load disabled
+repl-disable-tcp-nodelay no
+replica-priority 100
+
+#安全
+#requirepass 123456 #设置redis密码
+acllog-max-len 128
+lazyfree-lazy-eviction no
+lazyfree-lazy-expire no
+lazyfree-lazy-server-del no
+replica-lazy-flush no
+lazyfree-lazy-user-del no
+
+#aof
+appendonly no #默认不开启aof模式。默认使用rdb
+appendfilename "appendonly.aof" #持久化文件名字
+appendfsync everysec #每秒执行一次同步 always：每次修改都会同步 no：不同步
+no-appendfsync-on-rewrite no
+auto-aof-rewrite-percentage 100
+auto-aof-rewrite-min-size 64mb
+aof-load-truncated yes
+aof-use-rdb-preamble yes
+
+#其他
+lua-time-limit 5000
+slowlog-log-slower-than 10000
+slowlog-max-len 128
+latency-monitor-threshold 0
+notify-keyspace-events ""
+hash-max-ziplist-entries 512
+hash-max-ziplist-value 64
+list-max-ziplist-size -2
+list-compress-depth 0
+set-max-intset-entries 512
+zset-max-ziplist-entries 128
+zset-max-ziplist-value 64
+hll-sparse-max-bytes 3000
+stream-node-max-bytes 4096
+stream-node-max-entries 100
+activerehashing yes
+client-output-buffer-limit normal 0 0 0
+client-output-buffer-limit replica 256mb 64mb 60
+client-output-buffer-limit pubsub 32mb 8mb 60
+hz 10
+dynamic-hz yes
+aof-rewrite-incremental-fsync yes
+rdb-save-incremental-fsync yes
+jemalloc-bg-thread yes
+
+
+```
