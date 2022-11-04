@@ -689,3 +689,52 @@ DESC: 根据中心的位置， 按照从远到近的方式返回位置元素。
 127.0.0.1:6379> geohash china shanghai
 1) "wtw3sjt9vg0"
 ```
+
+### Hyperloglog
+
+基数统计，0.81%错误率
+
+```bash
+127.0.0.1:6379> pfadd mykey a b c d d e f
+(integer) 1
+127.0.0.1:6379> PFCOUNT mykey #不重复的元素个数
+(integer) 6
+127.0.0.1:6379> pfadd mykey2 a b c l k j
+(integer) 1
+127.0.0.1:6379> PFCOUNT mykey2
+(integer) 6
+127.0.0.1:6379> pfmerge mykey3 mykey mykey2 #合并mykey mykey2到mykey3
+OK
+127.0.0.1:6379> pfcount mykey3
+(integer) 9
+```
+
+### Bitmaps
+
+位存储
+00010111010000000000110
+可以用于统计用户信息，两个状态
+比如记录一周的打卡状态
+
+```bash
+127.0.0.1:6379> setbit sign 0 1
+(integer) 0
+127.0.0.1:6379> setbit sign 1 1
+(integer) 0
+127.0.0.1:6379> setbit sign 2 1
+(integer) 0
+127.0.0.1:6379> setbit sign 4 0
+(integer) 0
+127.0.0.1:6379> setbit sign 5 1
+(integer) 0
+127.0.0.1:6379> setbit sign 6 0
+(integer) 0
+127.0.0.1:6379> getbit sign 1 #取位置为1的值
+(integer) 1
+127.0.0.1:6379> getbit sign 3 #未设置的值，默认为0
+(integer) 0
+127.0.0.1:6379> getbit sign 10
+(integer) 0
+127.0.0.1:6379> bitcount sign #查看有多少个1
+(integer) 4
+```
