@@ -374,24 +374,24 @@ OK
 ```
 
 ```bash
-127.0.0.1:6379> SMEMBERS zj
+127.0.0.1:6379> smembers zj
 1) "2"
 2) "3"
 3) "5"
 4) "6"
 5) "7"
-127.0.0.1:6379> SMEMBERS zj2
+127.0.0.1:6379> smembers zj2
 1) "c"
 2) "b"
 3) "a"
-127.0.0.1:6379> SMOVE zj zj2 2 #把2从集合zj移动到zj2
+127.0.0.1:6379> smove zj zj2 2 #把2从集合zj移动到zj2
 (integer) 1
-127.0.0.1:6379> SMEMBERS zj
+127.0.0.1:6379> smembers zj
 1) "3"
 2) "5"
 3) "6"
 4) "7"
-127.0.0.1:6379> SMEMBERS zj2
+127.0.0.1:6379> smembers zj2
 1) "2"
 2) "c"
 3) "b"
@@ -399,34 +399,34 @@ OK
 ```
 
 ```bash
-127.0.0.1:6379> SMEMBERS zj
+127.0.0.1:6379> smembers zj
 1) "d"
 2) "a"
 3) "e"
 4) "f"
 5) "b"
 6) "c"
-127.0.0.1:6379> SMEMBERS zj2
+127.0.0.1:6379> smembers zj2
 1) "h"
 2) "g"
 3) "e"
 4) "k"
 5) "f"
 6) "j"
-127.0.0.1:6379> SDIFF zj zj2 #set1相比与set2有哪些不同
+127.0.0.1:6379> sdiff zj zj2 #set1相比与set2有哪些不同
 1) "c"
 2) "b"
 3) "a"
 4) "d"
-127.0.0.1:6379> SDIFF zj2 zj
+127.0.0.1:6379> sdiff zj2 zj
 1) "k"
 2) "j"
 3) "h"
 4) "g"
-127.0.0.1:6379> SINTER zj zj2 #交集
+127.0.0.1:6379> sinter zj zj2 #交集
 1) "e"
 2) "f"
-127.0.0.1:6379> SUNION zj zj2 #并集
+127.0.0.1:6379> sunion zj zj2 #并集
  1) "f"
  2) "c"
  3) "b"
@@ -438,3 +438,133 @@ OK
  9) "a"
 10) "j"
 ```
+
+### Hash
+
+key->map,一般以 h 开头
+
+```bash
+127.0.0.1:6379> hset myhash f1 test #设置一个hash
+(integer) 1
+127.0.0.1:6379> hget myhash f1 #取得值
+"test"
+127.0.0.1:6379> hmset myhash f1 test2 f2 test f3 test #设置多个hash
+OK
+127.0.0.1:6379> hmget myhash f1 f2 f3 #取得多个值
+1) "test2"
+2) "test"
+3) "test"
+127.0.0.1:6379> hgetall myhash #获取所有值
+1) "f1"
+2) "test2"
+3) "f2"
+4) "test"
+5) "f3"
+6) "test"
+```
+
+```bash
+127.0.0.1:6379> hdel myhash f1 #删除一个值
+(integer) 1
+127.0.0.1:6379> hexists myhash f1 #判断一个hash值是否存在，存在为1，不存在为0
+(integer) 0
+127.0.0.1:6379> hlen myhash #获取hash的字段数量
+(integer) 2
+127.0.0.1:6379> hkeys myhash #获取所有的key
+1) "f2"
+2) "f3"
+127.0.0.1:6379> hvals myhash #获取所有的值
+1) "test"
+2) "test"
+127.0.0.1:6379> hgetall myhash #获取所有的键值对
+1) "f2"
+2) "test"
+3) "f3"
+4) "test"
+```
+
+```bash
+127.0.0.1:6379> hset myhash f1 1
+(integer) 1
+127.0.0.1:6379> HINCRBY myhash f1 5 #值加5
+(integer) 6
+```
+
+### Zset
+
+有序集合，一般以 z 开头
+
+```bash
+127.0.0.1:6379> zadd myset 1 a 2 b 3 c #创建一个zset
+(integer) 3
+127.0.0.1:6379> ZRANGE myset 0 -1 #显示所有的值
+1) "a"
+2) "b"
+3) "c"
+127.0.0.1:6379> zadd myset 5 e
+(integer) 1
+127.0.0.1:6379> ZRANGE myset 0 -1
+1) "a"
+2) "b"
+3) "c"
+4) "e"
+127.0.0.1:6379> zadd myset 4 d
+(integer) 1
+127.0.0.1:6379> ZRANGE myset 0 -1
+1) "a"
+2) "b"
+3) "c"
+4) "d"
+5) "e"
+```
+
+```bash
+127.0.0.1:6379> zadd salary 2500 xiaohong 3000 xiaoming 2000 xiaoliu
+(integer) 3
+127.0.0.1:6379> ZRANGE salary 0 -1
+1) "xiaoliu"
+2) "xiaohong"
+3) "xiaoming"
+127.0.0.1:6379> ZREVRANGE salary 0 -1 #倒序
+1) "xiaoming"
+2) "xiaohong"
+3) "xiaoliu"
+127.0.0.1:6379> zadd salary 2000 xiaodu
+(integer) 1
+127.0.0.1:6379> ZRANGE salary 0 -1
+1) "xiaodu"
+2) "xiaoliu"
+3) "xiaohong"
+4) "xiaoming"
+127.0.0.1:6379> ZRANGEBYSCORE salary -inf +inf #从负无穷到正无穷排序
+1) "xiaodu"
+2) "xiaoliu"
+3) "xiaohong"
+4) "xiaoming"
+127.0.0.1:6379> ZRANGEBYSCORE salary -inf 2500 withscores
+1) "xiaodu"
+2) "2000"
+3) "xiaoliu"
+4) "2000"
+5) "xiaohong"
+6) "2500"
+127.0.0.1:6379> ZRANGEBYSCORE salary -inf 2500 #从负无穷到2500（包括）排序
+1) "xiaodu"
+2) "xiaoliu"
+3) "xiaohong"
+127.0.0.1:6379> ZRANGEBYSCORE salary -inf (2500  #从负无穷到2500（不包括）排序
+1) "xiaodu"
+2) "xiaoliu"
+127.0.0.1:6379> zrem salary xiaodu #移除xiaodu
+(integer) 1
+127.0.0.1:6379> ZRANGE salary 0 -1
+1) "xiaoliu"
+2) "xiaohong"
+3) "xiaoming"
+127.0.0.1:6379> zcard salary #集合中元素个数
+(integer) 3
+127.0.0.1:6379> ZCOUNT salary 2400 2600 #所给区间的值的个数
+(integer) 1
+```
+
+## 三种特殊数据类型
