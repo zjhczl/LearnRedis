@@ -738,3 +738,122 @@ OK
 127.0.0.1:6379> bitcount sign #查看有多少个1
 (integer) 4
 ```
+
+## redis 进阶
+
+### 事务
+
+一组命令一起执行，一次性按顺序执行。命令型错误，不能运行。数据型错误，则忽略错误项。
+
+redis 单条命令要么同时成功，要么同时失败，原子性。
+redis 事务: 1.开启事务 2.命令入队 3.执行事务
+
+#### 开启执行事务
+
+```bash
+127.0.0.1:6379> multi
+OK
+127.0.0.1:6379> set k1 v1
+QUEUED
+127.0.0.1:6379> set k2 v2
+QUEUED
+127.0.0.1:6379> get k2
+QUEUED
+127.0.0.1:6379> exec
+1) OK
+2) OK
+3) "v2"
+```
+
+```bash
+127.0.0.1:6379> multi
+OK
+127.0.0.1:6379> set k1 v1
+QUEUED
+127.0.0.1:6379> set k2 v2
+QUEUED
+127.0.0.1:6379> get k2
+QUEUED
+127.0.0.1:6379> discard #取消事务，清除队列
+OK
+```
+
+```bash
+127.0.0.1:6379> multi
+OK
+127.0.0.1:6379>
+127.0.0.1:6379> set k1 v1
+QUEUED
+127.0.0.1:6379> zj test 1 #命令型错误，退出事务
+(error) ERR unknown command `zj`, with args beginning with: `test`, `1`,
+127.0.0.1:6379> exec
+(error) EXECABORT Transaction discarded because of previous errors.
+
+127.0.0.1:6379> multi
+OK
+127.0.0.1:6379> set k1 v1
+QUEUED
+127.0.0.1:6379> getset k1
+(error) ERR wrong number of arguments for 'getset' command
+127.0.0.1:6379> get k1
+QUEUED
+127.0.0.1:6379> exec #有命令型错误，所有命令不能执行
+(error) EXECABORT Transaction discarded because of previous errors.
+```
+
+```bash
+127.0.0.1:6379> multi
+OK
+127.0.0.1:6379> set k1 aaa
+QUEUED
+127.0.0.1:6379> incr k1
+QUEUED
+127.0.0.1:6379> get k1
+QUEUED
+127.0.0.1:6379> exec #只有incr执行不成功，其他命令正常执行
+1) OK
+2) (error) ERR value is not an integer or out of range
+3) "aaa"
+```
+
+#### 监控 watch
+
+##### 悲观锁
+
+不论做什么都加锁
+
+##### 乐观锁
+
+认为什么时候都不出现问题
+在更新数据时判断一下是否有人修改过数据
+获取 version
+更新的时候比较 version
+
+```bash
+127.0.0.1:6379> set m 100
+OK
+127.0.0.1:6379> set out 0
+OK
+127.0.0.1:6379> watch m #监视m
+OK
+127.0.0.1:6379> multi #事务正常结束，数据期间没有发生变动，这个时候就正常执行成功
+OK
+127.0.0.1:6379> DECRBY m 20
+QUEUED
+127.0.0.1:6379> INCRBY out 20
+QUEUED
+127.0.0.1:6379> exec
+1) (integer) 80
+2) (integer) 20
+
+127.0.0.1:6379> watch m
+OK
+127.0.0.1:6379> multi
+OK
+127.0.0.1:6379> DECRBY m 20
+QUEUED
+127.0.0.1:6379> INCRBY out 20
+QUEUED
+127.0.0.1:6379> exec #在执行前，通过另外一个客户端改变m的值，队列执行失败
+(nil)
+```
