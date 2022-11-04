@@ -166,7 +166,7 @@ OK
 
 ### List
 
-大多数 list 命令都是 l 开头
+大多数 list 命令都是 l 开头。list 相当于是一个链表。
 
 ```bash
 127.0.0.1:6379> lpush zj 1 #插入到list头部
@@ -246,4 +246,57 @@ OK
 3) "33"
 4) "2"
 5) "1"
+```
+
+```bash
+127.0.0.1:6379> lrange list 0 -1
+1) "yeah~"
+2) "world"
+3) "hello"
+4) "test"
+5) "test"
+6) "test"
+127.0.0.1:6379> ltrim list 0 2 #修改了原来的list
+OK
+127.0.0.1:6379> lrange list 0 -1
+1) "yeah~"
+2) "world"
+3) "hello"
+```
+
+```bash
+127.0.0.1:6379> lrange list 0 -1
+1) "yeah~"
+2) "world"
+3) "hello"
+127.0.0.1:6379> rpoplpush list mylist #将元素从原来的list中移除并且添加的新的列表
+"hello"
+127.0.0.1:6379> lrange list 0 -1
+1) "yeah~"
+2) "world"
+127.0.0.1:6379> lrange mylist 0 -1
+1) "hello"
+```
+
+```bash
+127.0.0.1:6379> lrange list 0 -1
+1) "yeah~"
+2) "world"
+127.0.0.1:6379> lset list 1 1111 #设置list某个位置的值
+OK
+127.0.0.1:6379> lrange list 0 -1
+1) "yeah~"
+2) "1111"
+```
+
+```bash
+127.0.0.1:6379> lrange list 0 -1
+1) "yeah~"
+2) "1111"
+127.0.0.1:6379> linsert list after yeah~ ssss #在yeah～ 后面插入ssss
+(integer) 3
+127.0.0.1:6379> lrange list 0 -1
+1) "yeah~"
+2) "ssss"
+3) "1111"
 ```
