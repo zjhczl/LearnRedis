@@ -938,3 +938,113 @@ jemalloc-bg-thread yes
 
 
 ```
+
+### redis 集群
+
+一个主节点可以有多个从节点，一个从节点只能有一个主节点。
+
+#### 配置
+
+只需要配置从节点。需要修改配置文件的端口，pid，dump 文件名，和 log 文件名。
+
+```bash
+127.0.0.1:6379> info replication #查看信息
+# Replication
+role:master  #角色
+connected_slaves:0 #从机数量
+master_replid:69cd84a833f62a475ca4ebe8dbc6acc104076b43
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:0
+second_repl_offset:-1
+repl_backlog_active:0
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:0
+repl_backlog_histlen:0
+```
+
+启动所有 redis 服务
+
+```bash
+zj@zj-XPS-8950:/usr/local/bin$ ps -ef|grep redis
+zj          5601     985  0 11月10 ?      00:00:03 redis-server 127.0.0.1:6379
+root        8453     985  0 00:13 ?        00:00:00 redis-server 127.0.0.1:6380
+root        8717     985  0 00:15 ?        00:00:00 redis-server 127.0.0.1:6381
+root        8740     985  0 00:16 ?        00:00:00 redis-server 127.0.0.1:6382
+zj          8785    8184  0 00:16 pts/0    00:00:00 grep --color=auto redis
+```
+
+命令行的方法：
+把 6380，6381 端口的 redis 设置和为从机
+
+```bash
+127.0.0.1:6380> slaveof 127.0.0.1 6379 #设置6379端口的服务为主机
+OK
+127.0.0.1:6380> info replication #查看本机状态
+# Replication
+role:slave #角色
+master_host:127.0.0.1 #主机信息
+master_port:6379 #主机端口
+master_link_status:down
+master_last_io_seconds_ago:-1
+master_sync_in_progress:0
+slave_repl_offset:1
+master_link_down_since_seconds:1668097327
+slave_priority:100
+slave_read_only:1
+connected_slaves:0
+master_replid:2213a951b03415223d4d2584b64339e69a5ed512
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:0
+second_repl_offset:-1
+repl_backlog_active:0
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:0
+repl_backlog_histlen:0
+```
+
+修改配置文件配置从机器：
+
+```
+replicaof 127.0.0.1 6379
+```
+
+默认情况下从机器只能读，主机才能写.
+
+```bash
+127.0.0.1:6380> set k1 v1
+(error) READONLY You can't write against a read only replica.
+```
+
+主机所以的数据都会被从机保存。
+
+```bash
+127.0.0.1:6379> set k1 zj
+OK
+```
+
+```bash
+127.0.0.1:6380> get k1
+"zj"
+```
+
+#### 哨兵模式
+
+当主服务器死机后，从机自动变成主机。主机重启后，变为从机。
+目前选择一主二从的集群模式
+哨兵配置文件 sentinel.conf
+
+```
+sentinel monitor myredis 127.0.0.1 6379 1
+```
+
+启动哨兵服务
+
+```bash
+redis-sentinel zjconf/sentinel.conf
+```
+
+哨兵模式一般基于主从模式，可以主从切换。
+
+### redis 缓存穿透与雪崩
+
+pass
